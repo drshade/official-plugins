@@ -193,6 +193,20 @@ export type NoctaliaLayer = {
   configure: (entryId: string, props: LayerProps) -> (),
 }
 
+-- One concrete event instance from noctalia.calendarEvents(); recurring events arrive
+-- already expanded. API 37.
+export type CalendarEvent = {
+  id: string, -- iCal UID / provider id; a meeting on two calendars has two ids unless [calendar] dedupe_events
+  title: string,
+  calendarName: string,
+  colorHex: string, -- owning calendar's color, "" when unknown
+  location: string, -- raw LOCATION, may be ""
+  url: string, -- resolved http(s) meeting link, "" when none; already scheme-filtered
+  startMs: number, -- wall-clock ms, same base as nowMs()
+  endMs: number,
+  allDay: boolean, -- times are midnight-aligned
+}
+
 export type Noctalia = {
   log: (msg: string) -> (),
 
@@ -243,6 +257,9 @@ export type Noctalia = {
 
   copyToClipboard: (text: string, mimeType: string) -> boolean,
   clipboardText: () -> string?, -- nil when empty or non-text
+  -- Read-only snapshot of the shell's synced calendars; nil until the first successful
+  -- sync, so nil means "unknown", not "empty". API 37.
+  calendarEvents: () -> { CalendarEvent }?,
   getenv: (name: string) -> string?,
   expandPath: (path: string) -> string,
   formatTime: (pattern: string, unixSeconds: number?, timezone: string?) -> string,
